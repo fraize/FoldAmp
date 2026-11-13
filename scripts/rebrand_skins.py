@@ -5,6 +5,7 @@ Reads the original skins from skins/ and writes patched copies to app/src/main/a
 Requires Pillow (pip install Pillow); runs anywhere Python 3 does.
 
     python3 scripts/rebrand_skins.py [preview.png]
+    python3 scripts/rebrand_skins.py --check   # exit 1 if the bundled copies are out of date
 
 For each title strip the old word is erased (each row blends between the background at both ends
 of the gap, since title bars shade horizontally), the groove end-caps move outward a little to make
@@ -186,8 +187,10 @@ def bg_at(bg_l, bg_r, gl, gr, x, y):
 
 
 def main():
+    check = "--check" in sys.argv
+    args = [a for a in sys.argv[1:] if a != "--check"]
     os.makedirs(DST, exist_ok=True)
-    previews = []
+    previews, stale = [], []
     for skin, (source, bars) in PATCHES.items():
         with zipfile.ZipFile(os.path.join(SRC, skin)) as z:
             entries = [(info, z.read(info)) for info in z.infolist()]
@@ -216,18 +219,27 @@ def main():
             im.save(buf, "BMP")
             idx = by_name[name]
             entries[idx] = (entries[idx][0], buf.getvalue())
-        with zipfile.ZipFile(os.path.join(DST, skin), "w", zipfile.ZIP_DEFLATED) as z:
+        out = os.path.join(DST, skin)
+        if check:
+            # Compare contents, not zip bytes: zlib builds differ between platforms.
+            with zipfile.ZipFile(out) as z:
+                if {i.filename: d for i, d in entries} != {i.filename: z.read(i) for i in z.infolist()}:
+                    stale.append(skin)
+            continue
+        with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
             for info, data in entries:
                 z.writestr(info, data)
         print(f"patched {skin}")
-    if len(sys.argv) > 1:
+    if check:
+        sys.exit(f"out of date: {', '.join(stale)}" if stale else 0)
+    if args:
         w = max(p.width for p in previews)
         sheet = Image.new("RGB", (w, sum(p.height + 2 for p in previews)), (255, 0, 255))
         y = 0
         for p in previews:
             sheet.paste(p, (0, y))
             y += p.height + 2
-        sheet.resize((w * 4, sheet.height * 4), Image.NEAREST).save(sys.argv[1])
+        sheet.resize((w * 4, sheet.height * 4), Image.NEAREST).save(args[0])
 
 
 if __name__ == "__main__":

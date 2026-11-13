@@ -25,12 +25,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Regenerate rebranded skins
+      - name: Check the rebranded skins are up to date
         run: |
           python -m pip install Pillow
-          python scripts/rebrand_skins.py
-      - name: Check the skins came out identical
-        run: git diff --exit-code app/src/main/assets/skins
+          python scripts/rebrand_skins.py --check
       - if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
