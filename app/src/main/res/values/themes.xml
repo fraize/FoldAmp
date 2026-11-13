@@ -1,0 +1,12 @@
+<resources>
+    <style name="Theme.FoldAmp" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorAccent">#00E000</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    <style name="Theme.FoldAmp.Dialog" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">#00E000</item>
+    </style>
+</resources>
