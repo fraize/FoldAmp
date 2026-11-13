@@ -37,7 +37,7 @@ There are instructions for how to install .apk files outside of the Play Store [
   in the library under "Internet Radio". Icecast/SHOUTcast now-playing titles scroll in the marquee,
   and HLS streams work too. If the directory is unreachable, a built-in list of SomaFM channels is shown.
 - **Rebranded skins:** the bundled skins' title bars say FOLDAMP instead of WINAMP.
-  `python3 scripts/rebrand_skins.py` regenerates them from `skins/` (needs Pillow).
+  To regenerate them, see [Rebranded skins](#rebranded-skins).
 
 ## Fold layouts (`ui/FoldLayout.kt`)
 
