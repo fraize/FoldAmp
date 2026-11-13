@@ -46,3 +46,14 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.13.0")
     implementation("androidx.recyclerview:recyclerview:1.4.0")
 }
+
+// `gradlew runDebug`: build, install on the connected device or emulator, and launch. Uses the SDK's
+// own adb, so it works the same on macOS, Linux and Windows without adb on the PATH.
+val adb = androidComponents.sdkComponents.adb
+tasks.register<Exec>("runDebug") {
+    group = "install"
+    description = "Installs the debug build and launches FoldAmp."
+    dependsOn("installDebug")
+    doFirst { executable = adb.get().asFile.absolutePath }
+    args("shell", "am", "start", "-n", "com.foldamp/.ui.MainActivity")
+}

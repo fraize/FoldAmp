@@ -2,7 +2,7 @@
 """Rebrand the bundled skins: replace the "WINAMP" title-bar lettering with "FOLDAMP".
 
 Reads the original skins from skins/ and writes patched copies to app/src/main/assets/skins/.
-Requires Pillow (falls back to macOS `sips` for BMPs Pillow can't read).
+Requires Pillow (pip install Pillow); runs anywhere Python 3 does.
 
     python3 scripts/rebrand_skins.py [preview.png]
 
@@ -16,9 +16,7 @@ Anything after the first word (" EQUALIZER", " PLAYLIST") keeps its original pix
 """
 import io
 import os
-import subprocess
 import sys
-import tempfile
 import zipfile
 
 from PIL import Image
@@ -63,17 +61,9 @@ def lum(c):
 
 
 def open_bmp(data):
-    try:
-        im = Image.open(io.BytesIO(data))
-        im.load()
-        return im.convert("RGB")
-    except Exception:
-        with tempfile.TemporaryDirectory() as d:
-            src, dst = os.path.join(d, "in.bmp"), os.path.join(d, "out.png")
-            with open(src, "wb") as f:
-                f.write(data)
-            subprocess.run(["sips", "-s", "format", "png", src, "--out", dst], check=True, capture_output=True)
-            return Image.open(dst).convert("RGB")
+    im = Image.open(io.BytesIO(data))
+    im.load()
+    return im.convert("RGB")
 
 
 def diff_cols(im, x0, x1, y0, rows, bg_x):
@@ -207,7 +197,8 @@ def main():
             by_name[os.path.basename(info.filename).lower()] = idx
         sheets = {b.bmp: open_bmp(entries[by_name[b.bmp]][1]) for b in bars}
         originals = {name: im.copy() for name, im in sheets.items()}
-        gen = open_bmp(entries[by_name["gen.bmp"]][1])
+        # Only the Classified skins need gen.bmp (base-2.91's is RLE-compressed, which Pillow can't read).
+        gen = open_bmp(entries[by_name["gen.bmp"]][1]) if source == "gen" else None
         for bar in bars:
             im = sheets[bar.bmp]
             for sy, inactive in bar.strips:

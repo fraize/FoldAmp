@@ -9,35 +9,6 @@ Sure, man. Knock yourself out. You can find it in [Releases](https://github.com/
 
 There are instructions for how to install .apk files outside of the Play Store [over here](https://www.androidauthority.com/how-to-install-apks-31494/).
 
-## Dev environment
-
-Everything lives in the standard locations on this Mac:
-
-| Tool | Version | Location |
-|---|---|---|
-| JDK | Temurin 21 | `/Library/Java/JavaVirtualMachines/temurin-21.jdk` |
-| Android SDK | platforms 36 / 37, build-tools 36 / 37, emulator, platform-tools | `~/Library/Android/sdk` |
-| Gradle | 9.8.2 (wrapper checked in) | `./gradlew` |
-| Android Gradle Plugin | 9.5.1 (built-in Kotlin) | `build.gradle.kts` |
-| Emulator | `tl_fold` (Pixel Pro Fold profile, inner + cover displays) | `~/.android/avd` |
-
-```bash
-scripts/run.sh             # build debug APK, install, launch
-scripts/run.sh --emulator  # same, booting the tl_fold AVD first if nothing is connected
-./gradlew assembleRelease  # minified APK (debug-signed for now)
-```
-
-**adb on this Mac:** the default macOS USB backend makes the adb daemon hang at startup. Set
-`ADB_LIBUSB=1` (the run script does this) or add it to your shell profile.
-
-Emulator tricks used during development:
-
-```bash
-adb emu fold / adb emu unfold                 # switch between cover and inner screen
-adb shell cmd window user-rotation lock 1     # landscape (0 = portrait, "free" to unlock)
-adb exec-out screencap -p -d <display-id>     # ids from: adb shell dumpsys SurfaceFlinger --display-id
-```
-
 ## Features
 
 - **Playback:** MP3, AAC/M4A, FLAC, Ogg Vorbis, Opus, WAV and AMR via platform decoders, and
@@ -89,6 +60,81 @@ EQ and PL toggle those windows anywhere. ⏏ / ADD opens the Library in the play
   randomize, crop, save and load playlists, and so on).
 - Player: tap the clock to toggle elapsed / remaining, tap the song title for file info, tap the
   mini analyzer to change its mode. The options button (top-left) opens the main menu.
+
+## Building from source
+
+FoldAmp builds the same way on macOS, Linux and Windows. CI builds it on all three on every push
+(see `.github/workflows/build.yml`).
+
+### What you need
+
+| | Version | Notes |
+|---|---|---|
+| JDK | 17 or newer (21 recommended) | Android Studio ships one; otherwise e.g. [Temurin](https://adoptium.net) |
+| Android SDK | Platform 37, build-tools, platform-tools | Missing SDK packages download on the first build once licenses are accepted |
+| Gradle | 9.8.2 | Included: always use the wrapper (`gradlew`), not a system Gradle |
+| Python 3 + Pillow | any recent | Only for regenerating the rebranded skins |
+
+**The easy route:** install [Android Studio](https://developer.android.com/studio), open this
+folder, and let it sync. It provides the JDK and SDK and writes `local.properties` for you.
+
+**Command line only:** install a JDK and the Android
+[command-line tools](https://developer.android.com/studio#command-line-tools-only), then point
+Gradle at the SDK, either with an `ANDROID_HOME` environment variable or a `local.properties` file in
+the project root:
+
+```properties
+sdk.dir=/path/to/Android/sdk
+```
+
+Default SDK locations: `~/Library/Android/sdk` (macOS), `~/Android/Sdk` (Linux),
+`%LOCALAPPDATA%\Android\Sdk` (Windows; in `local.properties` write it with forward slashes or
+doubled backslashes). Accept the SDK licenses once with `sdkmanager --licenses`.
+
+### Build and run
+
+The commands below use `./gradlew` (macOS, Linux, Git Bash, PowerShell). In Windows `cmd`, type
+`gradlew` instead.
+
+```bash
+./gradlew assembleDebug     # debug APK in app/build/outputs/apk/debug/
+./gradlew runDebug          # build, install on the connected phone or emulator, and launch
+./gradlew assembleRelease   # minified APK (signed with the debug key for now)
+```
+
+`runDebug` uses the SDK's own `adb`, so it doesn't need `adb` on your `PATH`. To install on a
+phone, turn on Developer options ▸ USB debugging and accept the prompt the first time you connect.
+
+### Emulator
+
+In Android Studio's Device Manager, create a virtual device from a foldable profile (for example
+Pixel 9 Pro Fold), which has both an inner and a cover display. Start it, then `./gradlew runDebug`.
+Handy commands while testing (needs `platform-tools` on your `PATH`):
+
+```bash
+adb emu fold / adb emu unfold                 # switch between cover and inner screen
+adb shell cmd window user-rotation lock 1     # landscape (0 = portrait, "free" to unlock)
+adb exec-out screencap -p -d <display-id> > shot.png   # ids from: adb shell dumpsys SurfaceFlinger --display-id
+```
+
+### Rebranded skins
+
+The patched skins in `app/src/main/assets/skins/` are generated from the originals in `skins/`:
+
+```bash
+python3 -m pip install Pillow     # Windows: py -m pip install Pillow
+python3 scripts/rebrand_skins.py  # Windows: py scripts\rebrand_skins.py
+```
+
+### Troubleshooting
+
+- **macOS: `adb` hangs when its server starts.** Some Macs need the libusb backend. Set
+  `ADB_LIBUSB=1` in your shell profile, then run `adb kill-server`.
+- **Windows: the phone doesn't show up in `adb devices`.** Install your phone maker's USB driver
+  (for Samsung, the Samsung Android USB Driver).
+- **Linux: `adb devices` says "no permissions".** Add a udev rule for your phone (or install your
+  distro's `android-udev-rules` package) and make sure your user is in the `plugdev` group.
+- **"SDK location not found".** Set `ANDROID_HOME` or create `local.properties` as shown above.
 
 ## Code map
 

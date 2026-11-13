@@ -1,0 +1,9 @@
+# Normalize text to LF in the repo; check out with each OS's native endings except where a tool cares.
+* text=auto
+gradlew text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.wsz binary
+*.jar binary
+*.jpg binary
+*.png binary
