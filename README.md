@@ -1,6 +1,6 @@
 # FoldAmp
 
-A classic-skinned (Winamp 2.x style) music player for the Galaxy Z Fold, written in Kotlin with
+A classic-skinned (Winamp 2.x style) music player for the Galaxy Fold 8, written in Kotlin with
 Media3/ExoPlayer and plain Android views.
 
 ## Dev environment
