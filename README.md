@@ -3,6 +3,12 @@
 A classic-skinned (Winamp 2.x style) music player for the Galaxy Fold 8, written in Kotlin with
 Media3/ExoPlayer and plain Android views.
 
+## Just give me the APK
+
+Sure, man. Knock yourself out. You can find it in [Releases](https://github.com/fraize/FoldAmp/releases). 
+
+There are instructions for how to install .apk files outside of the Play Store [over here](https://www.androidauthority.com/how-to-install-apks-31494/).
+
 ## Dev environment
 
 Everything lives in the standard locations on this Mac:
